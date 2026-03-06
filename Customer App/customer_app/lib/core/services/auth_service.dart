@@ -7,25 +7,65 @@ class AuthService {
   User? get currentUser => _client.auth.currentUser;
   bool get isLoggedIn => _client.auth.currentUser != null;
 
-  /// Send OTP to the given phone number (E.164 format, e.g. +919876543210)
-  Future<void> signInWithPhone(String phone) async {
-    debugPrint('[AuthService] Sending OTP to $phone');
-    await _client.auth.signInWithOtp(phone: phone);
+  /// Sign in with mobile number and password
+  Future<AuthResponse> signInWithMobilePassword(String mobile, String password) async {
+    try {
+      debugPrint('[AuthService] Signing in with mobile: $mobile');
+      // Use email format with mobile for Supabase compatibility
+      final email = '${mobile.replaceAll('+', '')}@neara.local';
+      
+      final response = await _client.auth.signInWithPassword(
+        email: email,
+        password: password,
+      );
+      
+      debugPrint('[AuthService] Sign in successful: ${response.user?.id}');
+      return response;
+    } catch (e) {
+      debugPrint('[AuthService] Sign in error: $e');
+      rethrow;
+    }
   }
 
-  /// Verify OTP and sign in. Returns true if successful.
-  Future<bool> verifyOtp(String phone, String token) async {
+  /// Sign up with mobile number and password
+  Future<AuthResponse> signUpWithMobilePassword(
+    String mobile, 
+    String password, 
+    String fullName
+  ) async {
     try {
-      debugPrint('[AuthService] Verifying OTP for $phone');
-      final response = await _client.auth.verifyOTP(
-        phone: phone,
-        token: token,
-        type: OtpType.sms,
+      debugPrint('[AuthService] Signing up with mobile: $mobile');
+      // Use email format with mobile for Supabase compatibility
+      final email = '${mobile.replaceAll('+', '')}@neara.local';
+      
+      final response = await _client.auth.signUp(
+        email: email,
+        password: password,
+        data: {
+          'full_name': fullName,
+          'mobile': mobile,
+          'role': 'customer',
+        },
       );
-      debugPrint('[AuthService] Session: ${response.session?.user.id}');
-      return response.session != null;
+      
+      debugPrint('[AuthService] Sign up successful: ${response.user?.id}');
+      return response;
     } catch (e) {
-      debugPrint('[AuthService] OTP verification error: $e');
+      debugPrint('[AuthService] Sign up error: $e');
+      rethrow;
+    }
+  }
+
+  /// Reset password using mobile number
+  Future<void> resetPassword(String mobile) async {
+    try {
+      debugPrint('[AuthService] Resetting password for mobile: $mobile');
+      final email = '${mobile.replaceAll('+', '')}@neara.local';
+      
+      await _client.auth.resetPasswordForEmail(email);
+      debugPrint('[AuthService] Password reset email sent');
+    } catch (e) {
+      debugPrint('[AuthService] Password reset error: $e');
       rethrow;
     }
   }

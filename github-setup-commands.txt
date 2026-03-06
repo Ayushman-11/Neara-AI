@@ -1,0 +1,14 @@
+# GitHub Repository Setup Commands
+# Run these after creating your GitHub repository
+
+# Add your GitHub repository as remote origin
+git remote add origin https://github.com/YOUR_USERNAME/neara-hyperlocal-platform.git
+
+# Rename main branch to 'main' (GitHub standard)
+git branch -M main 
+
+# Push your commits to GitHub  
+git push -u origin main
+
+# Verify the push worked
+git remote -v
